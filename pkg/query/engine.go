@@ -115,17 +115,18 @@ func ExecuteWithConstraints(entries []parser.LogEntry, constraints Constraints) 
 			continue
 		}
 
-		matchAll := true
+		// OR logic: match if ANY keyword is found (or no keywords specified)
+		matchFound := len(constraints.Keywords) == 0 // If no keywords, match all
 		entryRawLower := strings.ToLower(entry.Raw)
 
 		for _, token := range constraints.Keywords {
-			if !strings.Contains(entryRawLower, token) {
-				matchAll = false
-				break
+			if strings.Contains(entryRawLower, token) {
+				matchFound = true
+				break // Found a match, no need to check other keywords
 			}
 		}
 
-		if matchAll {
+		if matchFound {
 			filtered = append(filtered, entry)
 		}
 	}

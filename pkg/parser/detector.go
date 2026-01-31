@@ -35,11 +35,18 @@ func DetectFormat(filePath string) (LogType, error) {
 	linesChecked := 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		if len(strings.TrimSpace(line)) == 0 {
+		trimmed := strings.TrimSpace(line)
+		if len(trimmed) == 0 {
 			continue
 		}
 
-		if strings.HasPrefix(strings.TrimSpace(line), "{") && strings.HasSuffix(strings.TrimSpace(line), "}") {
+		// Check for JSON object (single line)
+		if strings.HasPrefix(trimmed, "{") && strings.HasSuffix(trimmed, "}") {
+			return LogTypeJSON, nil
+		}
+
+		// Check for JSON array (like Elasticsearch bulk format or packet data)
+		if strings.HasPrefix(trimmed, "[") {
 			return LogTypeJSON, nil
 		}
 
