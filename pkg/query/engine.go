@@ -8,17 +8,27 @@ import (
 
 // Execute filters the log entries based on the user query string
 // It supports multi-keyword matching (AND logic) and ignores common stop words.
-func Execute(entries []parser.LogEntry, queryString string) []parser.LogEntry {
+// Constraints holds the parsed query requirements
+type Constraints struct {
+	MinLine  int
+	MaxLine  int
+	Keywords []string
+}
+
+// ParseConstraints parses the query string to extract line constraints and keywords
+func ParseConstraints(queryString string) Constraints {
 	if queryString == "" {
-		return entries
+		return Constraints{MinLine: -1, MaxLine: -1, Keywords: nil}
 	}
+
+	minLine, maxLine := -1, -1
 
 	// 1b. Check for Line Number queries
 	// patterns: "after line X", "between line X and Y"
-	var minLine, maxLine int = -1, -1
+	lowerQuery := strings.ToLower(queryString)
 
 	// Simple parsing for "after line <num>"
-	if strings.Contains(strings.ToLower(queryString), "after line") {
+	if strings.Contains(lowerQuery, "after line") {
 		parts := strings.Fields(queryString)
 		for i, p := range parts {
 			if strings.ToLower(p) == "line" && i+1 < len(parts) {
@@ -29,7 +39,7 @@ func Execute(entries []parser.LogEntry, queryString string) []parser.LogEntry {
 				}
 			}
 		}
-	} else if strings.Contains(strings.ToLower(queryString), "between line") {
+	} else if strings.Contains(lowerQuery, "between line") {
 		// "between line <X> and <Y>"
 		// Very basic parsing
 		parts := strings.Fields(queryString)
@@ -78,21 +88,37 @@ func Execute(entries []parser.LogEntry, queryString string) []parser.LogEntry {
 		tokens = []string{} // Valid to have no text tokens if only filtering by line
 	}
 
+	return Constraints{
+		MinLine:  minLine,
+		MaxLine:  maxLine,
+		Keywords: tokens,
+	}
+}
+
+// Execute filters the log entries based on the user query string
+// It supports multi-keyword matching (AND logic) and ignores common stop words.
+func Execute(entries []parser.LogEntry, queryString string) []parser.LogEntry {
+	constraints := ParseConstraints(queryString)
+	return ExecuteWithConstraints(entries, constraints)
+}
+
+// ExecuteWithConstraints filters entries using pre-parsed constraints
+func ExecuteWithConstraints(entries []parser.LogEntry, constraints Constraints) []parser.LogEntry {
 	filtered := []parser.LogEntry{}
 
 	for _, entry := range entries {
 		// Line Filter Check
-		if minLine != -1 && entry.Line <= minLine {
+		if constraints.MinLine != -1 && entry.Line <= constraints.MinLine {
 			continue
 		}
-		if maxLine != -1 && entry.Line >= maxLine {
+		if constraints.MaxLine != -1 && entry.Line >= constraints.MaxLine {
 			continue
 		}
 
 		matchAll := true
 		entryRawLower := strings.ToLower(entry.Raw)
 
-		for _, token := range tokens {
+		for _, token := range constraints.Keywords {
 			if !strings.Contains(entryRawLower, token) {
 				matchAll = false
 				break

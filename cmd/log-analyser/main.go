@@ -27,7 +27,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	entries, err := parser.Parse(filePath, logType)
+	// Optimize parsing by extracting line constraints first
+	constraints := query.ParseConstraints(queryString)
+
+	entries, err := parser.Parse(filePath, logType, constraints.MinLine, constraints.MaxLine)
 	if err != nil {
 		fmt.Printf("Error parsing file: %v\n", err)
 		os.Exit(1)

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func Parse(filePath string, logType LogType) ([]LogEntry, error) {
+func Parse(filePath string, logType LogType, minLine, maxLine int) ([]LogEntry, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -20,6 +20,17 @@ func Parse(filePath string, logType LogType) ([]LogEntry, error) {
 
 	for scanner.Scan() {
 		lineNum++
+
+		// Optimization: Stop reading if we reached the maxLine (exclusive)
+		if maxLine != -1 && lineNum >= maxLine {
+			break
+		}
+
+		// Optimization: Skip lines strict-after check (lineNum <= minLine)
+		if minLine != -1 && lineNum <= minLine {
+			continue
+		}
+
 		line := scanner.Text()
 		if len(strings.TrimSpace(line)) == 0 {
 			continue
