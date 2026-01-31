@@ -1,0 +1,8 @@
+2023-10-27 10:00:01 [INFO] Application started
+2023-10-27 10:00:02 [DEBUG] Loading configuration
+2023-10-27 10:00:03 [INFO] Connection established to DB
+2023-10-27 10:00:04 [ERROR] Failed to fetch user profile: user_id=123 not found
+2023-10-27 10:00:05 [WARN] Retrying connection to cache...
+2023-10-27 10:00:06 [INFO] Request received: GET /api/v1/users
+2023-10-27 10:00:07 [ERROR] internal server error at handler.go:50
+2023-10-27 10:00:08 [INFO] Application shutting down
