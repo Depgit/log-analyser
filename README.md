@@ -1,4 +1,4 @@
-# Log Analyser (`deplog`)
+# `deplog`
 
 A powerful, cross-platform CLI tool for analyzing and querying log files. It automatically detects log formats and supports natural language queries with advanced filtering capabilities.
 
