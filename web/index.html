@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Wireshark GSM_MAP, TCAP and SCP/CAP protocol log analyser — upload PDML or JSON exports and visualise signalling flows.">
+  <title>SignalTrace — Wireshark Protocol Analyser</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" stroke="#00d4ff" stroke-width="2" />
+        <path d="M4 14 Q9 8 14 14 Q19 20 24 14" stroke="#00d4ff" stroke-width="2" fill="none" stroke-linecap="round" />
+        <circle cx="14" cy="14" r="2.5" fill="#00d4ff" />
+      </svg>
+      <span class="logo-text">Signal<span class="logo-accent">Trace</span></span>
+    </div>
+    <div class="header-meta" id="fileInfo">No file loaded</div>
+    <div class="header-actions">
+      <div class="search-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input id="searchInput" type="text" placeholder="Search packets…" autocomplete="off">
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Upload Overlay ─────────────────────────────────────────────── -->
+  <div id="uploadOverlay" class="upload-overlay">
+    <div class="upload-card" id="dropzone">
+      <div class="upload-glow"></div>
+      <div class="upload-inner">
+        <div class="upload-icon-wrap">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <rect x="4" y="4" width="48" height="48" rx="14" fill="url(#grad1)" opacity=".15" />
+            <path d="M28 36V20M20 28l8-8 8 8" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M16 40h24" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round" opacity=".5" />
+            <defs>
+              <linearGradient id="grad1" x1="4" y1="4" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#00d4ff" />
+                <stop offset="1" stop-color="#9b59b6" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1>Wireshark Protocol Analyser</h1>
+        <p>Drop a Wireshark export here or click to browse</p>
+        <p class="upload-hint">Supports <strong>.pcap</strong> / <strong>.pcapng</strong> (direct) &nbsp;·&nbsp;
+          <strong>.pdml</strong> / <strong>.json</strong> (tshark exports)
+        </p>
+        <label class="btn-upload" for="fileInput">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Choose File
+        </label>
+        <input type="file" id="fileInput" accept=".pcap,.pcapng,.cap,.pdml,.xml,.json" hidden>
+        <div class="protocol-badges">
+          <span class="badge badge-map">GSM_MAP</span>
+          <span class="badge badge-tcap">TCAP</span>
+          <span class="badge badge-cap">SCP/CAP</span>
+          <span class="badge badge-sccp">SCCP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main app (hidden until file loaded) ───────────────────────── -->
+  <div id="appShell" class="app-shell hidden">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Protocol Filter</div>
+        <div class="filter-list" id="protoFilters">
+          <button class="filter-btn active" data-proto="">All Packets</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Views</div>
+        <div class="filter-list">
+          <button class="filter-btn view-btn active" id="viewPackets" onclick="switchView('packets')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18M9 21V9" />
+            </svg>
+            Packet Table
+          </button>
+          <button class="filter-btn view-btn" id="viewFlows" onclick="switchView('flows')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+            Call Flows
+          </button>
+          <button class="filter-btn view-btn" id="viewUnanswered" onclick="switchView('unanswered')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
+            Unanswered
+          </button>
+          <button class="filter-btn view-btn" id="viewStats" onclick="switchView('stats')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            Statistics
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section sidebar-summary" id="sidebarSummary">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="btn-new-file" onclick="newFile()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          Load New File
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main panel -->
+    <main class="main-panel">
+
+      <!-- ── Packet Table View ──────────────────────────────────────── -->
+      <div id="viewPacketsArea" class="view-area">
+        <div class="panel-bar">
+          <span id="packetCount" class="packet-count">0 packets</span>
+          <div class="panel-bar-actions">
+            <button class="icon-btn" onclick="exportCSV()" title="Export CSV">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="packet-table" id="packetTable">
+            <thead>
+              <tr>
+                <th class="col-num">#</th>
+                <th class="col-time">Time</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th class="col-proto">Protocol</th>
+                <th>Info</th>
+                <th class="col-len">Len</th>
+              </tr>
+            </thead>
+            <tbody id="packetBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+
+      <!-- ── Flow Diagram View ──────────────────────────────────────── -->
+      <div id="viewFlowsArea" class="view-area hidden">
+        <div class="panel-bar">
+          <span class="packet-count">TCAP Transaction Flows</span>
+        </div>
+        <div id="flowContainer" class="flow-container"></div>
+      </div>
+
+      <!-- ── Unanswered Requests View ───────────────────────────────── -->
+      <div id="viewUnansweredArea" class="view-area hidden">
+        <div class="panel-bar">
+          <span id="unansweredCount" class="packet-count">0 unanswered requests</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="packet-table" id="unansweredTable">
+            <thead>
+              <tr>
+                <th class="col-num">#</th>
+                <th class="col-time">Time</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Operation</th>
+                <th>Status</th>
+                <th>IMSI</th>
+                <th>MSISDN</th>
+                <th class="col-len">Resp Frame</th>
+              </tr>
+            </thead>
+            <tbody id="unansweredBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Statistics View ───────────────────────────────────────── -->
+      <div id="viewStatsArea" class="view-area hidden">
+        <div class="panel-bar">
+          <span class="packet-count">Protocol Statistics</span>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-card-title">Protocol Distribution</div>
+            <div class="chart-wrap"><canvas id="chartProto"></canvas></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">TCAP Message Types</div>
+            <div class="chart-wrap"><canvas id="chartTcap"></canvas></div>
+          </div>
+          <div class="stat-card stat-card-wide">
+            <div class="stat-card-title">GSM_MAP Operations (top 15)</div>
+            <div class="chart-wrap chart-wrap-tall"><canvas id="chartMap"></canvas></div>
+          </div>
+          <div class="stat-card stat-card-wide">
+            <div class="stat-card-title">CAP / SCP Operations</div>
+            <div class="chart-wrap chart-wrap-tall"><canvas id="chartCap"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ── Detail drawer ──────────────────────────────────────────────── -->
+  <div id="detailDrawer" class="detail-drawer hidden">
+    <div class="detail-header">
+      <span class="detail-title" id="detailTitle">Packet Detail</span>
+      <button class="icon-btn" onclick="closeDetail()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+
+  <!-- ── Toast notification ─────────────────────────────────────────── -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

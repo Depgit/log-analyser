@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sample Wireshark PDML export for testing SignalTrace.
+  This simulates a GSM_MAP UpdateLocation / InsertSubscriberData sequence
+  over TCAP/SCCP/M3UA.
+
+  Generate your own with:
+    tshark -r your_capture.pcap -T pdml > capture.pdml
+-->
+<pdml version="0" creator="Wireshark/4.2.0">
+
+  <!-- Packet 1: TCAP Begin / MAP UpdateLocation (Invoke) -->
+  <packet>
+    <proto name="frame" showname="Frame 1">
+      <field name="frame.number" show="1" value="01"/>
+      <field name="frame.time_epoch" show="1708512000.000000" value=""/>
+      <field name="frame.time_relative" show="0.000000" value=""/>
+      <field name="frame.len" show="142" value=""/>
+      <field name="frame.protocols" show="eth:ip:sctp:m3ua:sccp:tcap:gsm_map" value=""/>
+    </proto>
+    <proto name="ip" showname="Internet Protocol">
+      <field name="ip.src" show="10.10.1.1" value="0a0a0101"/>
+      <field name="ip.dst" show="10.10.1.2" value="0a0a0102"/>
+    </proto>
+    <proto name="sccp" showname="Signalling Connection Control Part">
+      <field name="sccp.called.gt_digits" show="919876543210" value=""/>
+      <field name="sccp.calling.gt_digits" show="911234567890" value=""/>
+    </proto>
+    <proto name="tcap" showname="Transaction Capabilities Application Part">
+      <field name="tcap.MessageType" show="Begin" value="02"/>
+      <field name="tcap.otid" show="a1b2c3d4" value="a1b2c3d4"/>
+      <field name="tcap.oid" show="0.4.0.0.1.0.1.1" value=""/>
+      <field name="component" showname="Component">
+        <field name="componentType" show="invoke" value="01"/>
+        <field name="invokeId" show="1" value="01"/>
+        <field name="opCode" show="2" value="02"/>
+      </field>
+    </proto>
+    <proto name="gsm_map" showname="GSM Mobile Application Part">
+      <field name="gsm_map.component_type" show="invoke" value="01"/>
+      <field name="gsm_map.invokeID" show="1" value="01"/>
+      <field name="gsm_map.opr_code" show="2" value="02"/>
+      <field name="gsm_map.imsi" show="404100123456789" value=""/>
+      <field name="gsm_map.msisdn_digits" show="919876543210" value=""/>
+    </proto>
+  </packet>
+
+  <!-- Packet 2: TCAP Continue / MAP InsertSubscriberData (Invoke) -->
+  <packet>
+    <proto name="frame" showname="Frame 2">
+      <field name="frame.number" show="2" value="02"/>
+      <field name="frame.time_epoch" show="1708512000.123000" value=""/>
+      <field name="frame.time_relative" show="0.123000" value=""/>
+      <field name="frame.len" show="310" value=""/>
+      <field name="frame.protocols" show="eth:ip:sctp:m3ua:sccp:tcap:gsm_map" value=""/>
+    </proto>
+    <proto name="ip">
+      <field name="ip.src" show="10.10.1.2" value="0a0a0102"/>
+      <field name="ip.dst" show="10.10.1.1" value="0a0a0101"/>
+    </proto>
+    <proto name="sccp">
+      <field name="sccp.called.gt_digits" show="911234567890" value=""/>
+      <field name="sccp.calling.gt_digits" show="919876543210" value=""/>
+    </proto>
+    <proto name="tcap">
+      <field name="tcap.MessageType" show="Continue" value="05"/>
+      <field name="tcap.otid" show="a1b2c3d4" value="a1b2c3d4"/>
+      <field name="tcap.dtid" show="d4c3b2a1" value="d4c3b2a1"/>
+      <field name="component" showname="Component">
+        <field name="componentType" show="invoke" value="01"/>
+        <field name="invokeId" show="2" value="02"/>
+        <field name="opCode" show="6" value="06"/>
+      </field>
+    </proto>
+    <proto name="gsm_map">
+      <field name="gsm_map.component_type" show="invoke" value="01"/>
+      <field name="gsm_map.invokeID" show="2" value="02"/>
+      <field name="gsm_map.opr_code" show="6" value="06"/>
+      <field name="gsm_map.imsi" show="404100123456789" value=""/>
+    </proto>
+  </packet>
+
+  <!-- Packet 3: TCAP Continue / MAP InsertSubscriberData (ReturnResult) -->
+  <packet>
+    <proto name="frame">
+      <field name="frame.number" show="3" value="03"/>
+      <field name="frame.time_epoch" show="1708512000.245000" value=""/>
+      <field name="frame.time_relative" show="0.245000" value=""/>
+      <field name="frame.len" show="68" value=""/>
+      <field name="frame.protocols" show="eth:ip:sctp:m3ua:sccp:tcap:gsm_map" value=""/>
+    </proto>
+    <proto name="ip">
+      <field name="ip.src" show="10.10.1.1" value="0a0a0101"/>
+      <field name="ip.dst" show="10.10.1.2" value="0a0a0102"/>
+    </proto>
+    <proto name="sccp">
+      <field name="sccp.called.gt_digits" show="919876543210" value=""/>
+      <field name="sccp.calling.gt_digits" show="911234567890" value=""/>
+    </proto>
+    <proto name="tcap">
+      <field name="tcap.MessageType" show="Continue" value="05"/>
+      <field name="tcap.otid" show="a1b2c3d4" value="a1b2c3d4"/>
+      <field name="tcap.dtid" show="d4c3b2a1" value="d4c3b2a1"/>
+      <field name="component" showname="Component">
+        <field name="componentType" show="returnresult" value="02"/>
+        <field name="invokeId" show="2" value="02"/>
+        <field name="opCode" show="6" value="06"/>
+      </field>
+    </proto>
+    <proto name="gsm_map">
+      <field name="gsm_map.component_type" show="returnresultlast" value="02"/>
+      <field name="gsm_map.invokeID" show="2" value="02"/>
+      <field name="gsm_map.opr_code" show="6" value="06"/>
+    </proto>
+  </packet>
+
+  <!-- Packet 4: TCAP End / MAP UpdateLocation (ReturnResult) -->
+  <packet>
+    <proto name="frame">
+      <field name="frame.number" show="4" value="04"/>
+      <field name="frame.time_epoch" show="1708512000.389000" value=""/>
+      <field name="frame.time_relative" show="0.389000" value=""/>
+      <field name="frame.len" show="72" value=""/>
+      <field name="frame.protocols" show="eth:ip:sctp:m3ua:sccp:tcap:gsm_map" value=""/>
+    </proto>
+    <proto name="ip">
+      <field name="ip.src" show="10.10.1.2" value="0a0a0102"/>
+      <field name="ip.dst" show="10.10.1.1" value="0a0a0101"/>
+    </proto>
+    <proto name="sccp">
+      <field name="sccp.called.gt_digits" show="911234567890" value=""/>
+      <field name="sccp.calling.gt_digits" show="919876543210" value=""/>
+    </proto>
+    <proto name="tcap">
+      <field name="tcap.MessageType" show="End" value="04"/>
+      <field name="tcap.otid" show="a1b2c3d4" value="a1b2c3d4"/>
+      <field name="tcap.dtid" show="d4c3b2a1" value="d4c3b2a1"/>
+      <field name="component" showname="Component">
+        <field name="componentType" show="returnresult" value="02"/>
+        <field name="invokeId" show="1" value="01"/>
+        <field name="opCode" show="2" value="02"/>
+      </field>
+    </proto>
+    <proto name="gsm_map">
+      <field name="gsm_map.component_type" show="returnresultlast" value="02"/>
+      <field name="gsm_map.invokeID" show="1" value="01"/>
+      <field name="gsm_map.opr_code" show="2" value="02"/>
+    </proto>
+  </packet>
+
+  <!-- Packet 5: CAP InitialDP (SCP flow) -->
+  <packet>
+    <proto name="frame">
+      <field name="frame.number" show="5" value="05"/>
+      <field name="frame.time_epoch" show="1708512001.000000" value=""/>
+      <field name="frame.time_relative" show="1.000000" value=""/>
+      <field name="frame.len" show="220" value=""/>
+      <field name="frame.protocols" show="eth:ip:sctp:m3ua:sccp:tcap:cap" value=""/>
+    </proto>
+    <proto name="ip">
+      <field name="ip.src" show="10.10.2.1" value="0a0a0201"/>
+      <field name="ip.dst" show="10.10.2.2" value="0a0a0202"/>
+    </proto>
+    <proto name="sccp">
+      <field name="sccp.called.gt_digits" show="918888888888" value=""/>
+      <field name="sccp.calling.gt_digits" show="917777777777" value=""/>
+    </proto>
+    <proto name="tcap">
+      <field name="tcap.MessageType" show="Begin" value="02"/>
+      <field name="tcap.otid" show="beef1234" value="beef1234"/>
+      <field name="component" showname="Component">
+        <field name="componentType" show="invoke" value="01"/>
+        <field name="invokeId" show="1" value="01"/>
+        <field name="opCode" show="0" value="00"/>
+      </field>
+    </proto>
+    <proto name="cap">
+      <field name="cap.opcode" show="0" value="00"/>
+      <field name="cap.serviceKey" show="1001" value=""/>
+      <field name="cap.imsi" show="404100987654321" value=""/>
+      <field name="cap.calledPartyNumber" show="919999999999" value=""/>
+      <field name="cap.callingPartyNumber" show="918888888888" value=""/>
+    </proto>
+  </packet>
+
+  <!-- Packet 6: CAP Connect (SCP response) -->
+  <packet>
+    <proto name="frame">
+      <field name="frame.number" show="6" value="06"/>
+      <field name="frame.time_epoch" show="1708512001.150000" value=""/>
+      <field name="frame.time_relative" show="1.150000" value=""/>
+      <field name="frame.len" show="90" value=""/>
+      <field name="frame.protocols" show="eth:ip:sctp:m3ua:sccp:tcap:cap" value=""/>
+    </proto>
+    <proto name="ip">
+      <field name="ip.src" show="10.10.2.2" value="0a0a0202"/>
+      <field name="ip.dst" show="10.10.2.1" value="0a0a0201"/>
+    </proto>
+    <proto name="sccp">
+      <field name="sccp.called.gt_digits" show="917777777777" value=""/>
+      <field name="sccp.calling.gt_digits" show="918888888888" value=""/>
+    </proto>
+    <proto name="tcap">
+      <field name="tcap.MessageType" show="Continue" value="05"/>
+      <field name="tcap.otid" show="beef1234" value="beef1234"/>
+      <field name="tcap.dtid" show="4321feeb" value="4321feeb"/>
+      <field name="component" showname="Component">
+        <field name="componentType" show="invoke" value="01"/>
+        <field name="invokeId" show="2" value="02"/>
+        <field name="opCode" show="5" value="05"/>
+      </field>
+    </proto>
+    <proto name="cap">
+      <field name="cap.opcode" show="5" value="05"/>
+      <field name="cap.calledPartyNumber" show="919999999999" value=""/>
+    </proto>
+  </packet>
+
+</pdml>
